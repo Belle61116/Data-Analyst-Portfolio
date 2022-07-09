@@ -1,12 +1,6 @@
 --Data source: https://ourworldindata.org/covid-deaths
 --Dataset was separated into 2 datasets: CovidDeaths and CovidVaccinations
 
--- See CovidDeaths dataset for United States
-SELECT *
-FROM Portfolio..CovidDeaths
-WHERE location like '%states'
-ORDER BY date DESC
-
 -- New cases and new deaths percentages in United States
 SELECT location, date, new_cases, new_deaths, population, (new_cases/population)*100 AS new_cases_vs_pop, (new_deaths/NULLIF(new_cases,0))*100 AS new_deaths_per_new_cases
 FROM Portfolio..CovidDeaths
@@ -47,12 +41,6 @@ SELECT SUM(new_cases) as world_new_cases, SUM(new_deaths) as world_new_deaths, S
 , SUM(total_cases) as world_tot_cases, SUM(total_deaths) as world_tot_deaths, SUM(total_deaths)/SUM(total_cases)*100 as world_tot_death_per_tot_cases_percentage
 FROM Portfolio..CovidDeaths
 where continent <> ''
-
--- See CovidVaccinations dataset for United States
-SELECT people_fully_vaccinated
-FROM Portfolio..CovidVaccinations
-WHERE location like '%states'
-ORDER BY date DESC
 
 -- Countries with highest percentage of fully vaccinated
 SELECT dea.location, dea.population, MAX(vac.people_fully_vaccinated) AS total_vaccinated
