@@ -1,0 +1,66 @@
+--Data source: https://ourworldindata.org/covid-deaths
+--Dataset was separated into 2 datasets: CovidDeaths and CovidVaccinations
+
+-- See CovidDeaths dataset for United States
+SELECT *
+FROM Portfolio..CovidDeaths
+WHERE location like '%states'
+ORDER BY date DESC
+
+-- New cases and new deaths percentages in United States
+SELECT location, date, new_cases, new_deaths, population, (new_cases/population)*100 AS new_cases_vs_pop, (new_deaths/NULLIF(new_cases,0))*100 AS new_deaths_per_new_cases
+FROM Portfolio..CovidDeaths
+WHERE location like '%states'
+ORDER BY 2 DESC
+
+-- Countries with highest number of deaths (vs population) since covid-19 started
+SELECT location, population, MAX(total_deaths) as tot_deaths, MAX(total_deaths)/NULLIF(population,0)*100 AS tot_deaths_vs_pop
+FROM Portfolio..CovidDeaths
+WHERE continent <> ''
+GROUP BY location, population
+ORDER BY tot_deaths_vs_pop DESC
+
+-- Countries with highest infection rate since covid-19 started
+SELECT location, population, MAX(total_cases) as tot_cases, MAX(total_cases)/NULLIF(population,0)*100 AS tot_cases_vs_pop
+FROM Portfolio..CovidDeaths
+WHERE continent <> ''
+GROUP BY location, population
+ORDER BY tot_cases_vs_pop DESC
+
+-- Countries with highest total deaths
+SELECT location, MAX(total_deaths) as num_deaths
+FROM Portfolio..CovidDeaths
+WHERE continent <> ''
+GROUP BY location
+ORDER BY num_deaths DESC
+
+-- CONTINENTS with highest total deaths
+SELECT location, MAX(total_deaths) as num_deaths
+FROM Portfolio..CovidDeaths
+WHERE continent = ''
+AND location NOT LIKE '%income%'
+GROUP BY location
+ORDER BY num_deaths DESC
+
+-- World counts
+SELECT SUM(new_cases) as world_new_cases, SUM(new_deaths) as world_new_deaths, SUM(new_deaths)/SUM(new_cases)*100 as world_new_death_per_new_cases_percentage
+, SUM(total_cases) as world_tot_cases, SUM(total_deaths) as world_tot_deaths, SUM(total_deaths)/SUM(total_cases)*100 as world_tot_death_per_tot_cases_percentage
+FROM Portfolio..CovidDeaths
+where continent <> ''
+
+-- See CovidVaccinations dataset for United States
+SELECT people_fully_vaccinated
+FROM Portfolio..CovidVaccinations
+WHERE location like '%states'
+ORDER BY date DESC
+
+-- Countries with highest percentage of fully vaccinated
+SELECT dea.location, dea.population, MAX(vac.people_fully_vaccinated) AS total_vaccinated
+, MAX(vac.people_fully_vaccinated)/NULLIF(dea.population,0)*100 AS percent_fully_vaccinated
+FROM Portfolio..CovidDeaths dea
+JOIN Portfolio..CovidVaccinations vac
+	ON dea.location = vac.location
+	AND	dea.date = vac.date
+WHERE dea.continent <> ''
+GROUP BY dea.location, dea.population
+ORDER BY 4 DESC
